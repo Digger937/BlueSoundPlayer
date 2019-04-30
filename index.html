@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <title>BlueSound Player</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="refresh" content="30">	
+<link rel="icon" href="https://www.bluesound.com/wp-content/uploads/2015/09/cropped-Bluesound-LOGO-32x32.jpg" sizes="32x32" />
+	
+<style type="text/css">
+.page-header{
+width: 450px;
+}
+
+.headerbar{
+    background-color: #23282a;
+    background-image: -webkit-linear-gradient(top, #23282a 0%, #23282a 2px, #23282a 92px, #23282a 100%);
+    background-image: linear-gradient(to bottom, #23282a 0%,#23282a 2px,#23282a 92px,#23282a 100%);
+    background-repeat: repeat-x;
+    margin-bottom: 4px;
+    padding: 5px;
+    border-radius: 7px;	
+}
+
+.playerbuttons{
+	align-content: center;
+	align-items: center;
+	padding: 5px;
+}
+
+.playerbody{
+    background-color: #23282a;
+    border-radius: 7px;	
+	color: #FFFFFF;
+	width: 400px;
+	resize: both;
+	padding: 10px;
+	border: 1px solid black;
+	white-space: nowrap;
+	margin-bottom: 4px;
+}
+
+.playertext{
+   background-color: lightgrey;
+   margin: 10px 10px 10px 10px;
+   width: 300px;
+   color:#111111;
+   padding: 5px;
+}
+
+.playerbutton{
+	padding: 5px;
+	background-color: #e7e7e7;
+	border-radius: 8px;
+	font-size: 16px;
+}
+</style>	
+
+<script type='text/javascript'>
+// Set the IP address or DNS name for the BlueSound device here
+function PlayerURL(){
+var url='http://192.168.0.59:11000'
+return url;
+};
+// Send the command to the player
+function SendCommand(cmd){
+	var http = new XMLHttpRequest();
+	var url = PlayerURL();
+	// Add the command to the Player URL 
+	url+=cmd
+	http.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		   // Wait for the "document is ready":
+ 
+		}
+	};	
+	
+	http.open('GET', url, true);
+	http.send();
+	RereshClick();		  
+}
+
+// Get the lastest whats playing from the device. 
+function RereshClick(){
+	var url = PlayerURL();
+	url+='/Status';
+	var http = new XMLHttpRequest();
+	
+	http.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		   // Wait for the "document is ready":
+		if (window.DOMParser) {
+		  parser = new DOMParser();
+		  xmlDoc = parser.parseFromString(http.responseText,"text/xml");
+		} else {
+		  xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+		  xmlDoc.async = false;
+		  xmlDoc.loadXML(http.responseText); 
+		}
+		document.getElementById("PlayerState").innerHTML = xmlDoc.getElementsByTagName("state")[0].childNodes[0].nodeValue;	
+		document.getElementById("PlayerVolume").innerHTML = xmlDoc.getElementsByTagName("volume")[0].childNodes[0].nodeValue;	
+		
+		document.getElementById("SongPlaying").innerHTML = xmlDoc.getElementsByTagName("title1")[0].childNodes[0].nodeValue;
+		document.getElementById("AlbumPlaying").innerHTML = xmlDoc.getElementsByTagName("album")[0].childNodes[0].nodeValue;
+		document.getElementById("ArtistPlaying").innerHTML = xmlDoc.getElementsByTagName("artist")[0].childNodes[0].nodeValue;
+		document.getElementById("MusicSource").innerHTML = xmlDoc.getElementsByTagName("service")[0].childNodes[0].nodeValue;		
+		}
+	};	
+	
+	http.open('GET', url, true);
+	http.send();
+	
+};
+
+document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById("PlayerURL").innerHTML = PlayerURL();
+	RereshClick();
+	var d = new Date();
+	document.getElementById("PageUpdate").innerHTML = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+});
+
+</script>
+	
+</head>
+<body>
+  
+<div class="page-header">
+	<div id="site-description" class="headerbar">
+		<img src="https://helpdesk.bluesound.com/discussions/styles/BluesoundStyle/theme/images/BLS_site_logo.png"" alt="BlueSound Player" />
+	</div>
+</div>
+
+<div class="playerbody">
+<table>
+	<tr><td>Node URL:</td><td><div id="PlayerURL"></div></td></tr>
+	<tr><td>Last Update:</td><td><div id="PageUpdate"></div></td></tr>
+	<tr><td>State:</td><td><div id="PlayerState"></div></td></tr>
+	<tr><td>Volume:</td><td><div id="PlayerVolume"></div></td></tr>
+</table>
+</div>
+						
+<div class="playerbody">
+<table>
+	<tr><td>Song:</td><td><div id="SongPlaying" class="playertext">&nbsp;</div></td></tr>
+	<tr><td>Album:</td><td><div id="AlbumPlaying" class="playertext">&nbsp;</div></td></tr>
+	<tr><td>Artist:<td><div id="ArtistPlaying" class="playertext">&nbsp;</div></td></tr>
+	<tr><td>Source:</td><td><div id="MusicSource" class="playertext">&nbsp;</div></td></tr>
+</table>
+	
+	<div class="playerbuttons">
+		<button id="BackButton" class="playerbutton" onclick="SendCommand('/Back');">Back</button>
+		<button id="PauseButton" class="playerbutton" onclick="SendCommand('/Pause');">Pause</button>
+		<button id="PlayButton" class="playerbutton" onclick="SendCommand('/Play');">Play</button>
+		<button id="SkipButton" class="playerbutton" onclick="SendCommand('/Skip');">Next</button>
+		<button id="RefreshButton" class="playerbutton" onclick="RereshClick();">Reresh</button>
+	</div>
+</div>
+
+</body>
+</html>
+
